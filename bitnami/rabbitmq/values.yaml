@@ -174,7 +174,7 @@ onlineSchedulers: ""
 memoryHighWatermark:
   ## @param memoryHighWatermark.enabled Enable configuring Memory high watermark on RabbitMQ
   ##
-  enabled: false
+  enabled: true
   ## @param memoryHighWatermark.type Memory high watermark type. Either `absolute` or `relative`
   ##
   type: "relative"
@@ -184,7 +184,7 @@ memoryHighWatermark:
   ## Note: the memory relative limit is applied to the resource.limits.memory to calculate the memory threshold
   ## You can also use an absolute value, e.g.: 256MB
   ##
-  value: 0.4
+  value: 0.5
 
 ## @param plugins List of default plugins to enable (should only be altered to remove defaults; for additional plugins use `extraPlugins`)
 ##
@@ -198,7 +198,7 @@ communityPlugins: ""
 ## @param extraPlugins Extra plugins to enable (single string containing a space-separated list)
 ## Use this instead of `plugins` to add new plugins
 ##
-extraPlugins: "rabbitmq_auth_backend_ldap"
+extraPlugins: ""
 
 ## Clustering settings
 ##
@@ -284,7 +284,7 @@ configuration: |-
   ## Username and password
   ##
   default_user = {{ .Values.auth.username }}
-  default_pass = CHANGEME
+  default_pass = {{ template "rabbitmq.secretPasswordName" . }}
   {{- if .Values.clustering.enabled }}
   ## Clustering
   ##
@@ -340,6 +340,8 @@ configuration: |-
 extraConfiguration: |-
   #default_vhost = {{ .Release.Namespace }}-vhost
   #disk_free_limit.absolute = 50MB
+  disk_free_limit.absolute = 1GB
+  management.load_definitions = /app/load_definition.json
 
 ## @param advancedConfiguration Configuration file content: advanced configuration
 ## Use this as additional configuration in classic config format (Erlang term configuration format)
@@ -360,6 +362,14 @@ extraConfiguration: |-
 ##   }].
 ##
 advancedConfiguration: |-
+  [{rabbit, [
+    {log, [
+      {console, [{level, info}]},
+      {categories, [
+          {connection, [{level, warning}]}
+          ]}
+      ]}]
+  }].
 
 ## LDAP configuration
 ##
@@ -419,7 +429,7 @@ extraSecretsPrependReleaseName: false
 
 ## @param replicaCount Number of RabbitMQ replicas to deploy
 ##
-replicaCount: 1
+replicaCount: 3
 
 ## @param schedulerName Use an alternate scheduler, e.g. "stork".
 ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
@@ -442,12 +452,15 @@ podManagementPolicy: OrderedReady
 ## @param podLabels RabbitMQ Pod labels. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-podLabels: {}
+podLabels:
+  app: "{{ .Release.Name }}"
+  component: "database"
 
 ## @param podAnnotations RabbitMQ Pod annotations. Evaluated as a template
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
-podAnnotations: {}
+podAnnotations:
+  sidecar.istio.io/inject: "false"
 
 ## @param updateStrategyType Update strategy type for RabbitMQ statefulset
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
@@ -472,7 +485,7 @@ podAffinityPreset: ""
 ## @param podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
 ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
 ##
-podAntiAffinityPreset: soft
+podAntiAffinityPreset: ""
 
 ## Node affinity preset
 ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
@@ -498,7 +511,18 @@ nodeAffinityPreset:
 ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
 ##
-affinity: {}
+affinity: |
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels: {{- include "common.labels.matchLabels" . | nindent 12 }}
+        topologyKey: kubernetes.io/hostname
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels: {{- include "common.labels.matchLabels" . | nindent 14 }}
+          topologyKey: failure-domain.beta.kubernetes.io/zone
 
 ## @param nodeSelector Node labels for pod assignment. Evaluated as a template
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -551,11 +575,11 @@ resources:
   ##    cpu: 1000m
   ##    memory: 2Gi
   ##
-  limits: {}
+  limits:
   ## Examples:
   ## requests:
   ##    cpu: 1000m
-  ##    memory: 2Gi
+    memory: 1Gi
   ##
   requests: {}
 
@@ -635,13 +659,13 @@ sidecars: []
 pdb:
   ## @param pdb.create Enable/disable a Pod Disruption Budget creation
   ##
-  create: false
+  create: true
   ## @param pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
   ##
-  minAvailable: 1
+  #minAvailable: 1
   ## @param pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
   ##
-  maxUnavailable: ""
+  maxUnavailable: 1
 
 ## @section RBAC parameters
 ##
@@ -869,7 +893,9 @@ service:
 
   ## @param service.labels Service labels. Evaluated as a template
   ##
-  labels: {}
+  labels:
+    app: "{{ .Release.Name }}"
+    component: "database"
 
   ## @param service.annotations Service annotations. Evaluated as a template
   ## Example:
@@ -1168,7 +1194,7 @@ metrics:
 volumePermissions:
   ## @param volumePermissions.enabled Enable init container that changes the owner and group of the persistent volume(s) mountpoint to `runAsUser:fsGroup`
   ##
-  enabled: false
+  enabled: true
   ## @param volumePermissions.image.registry Init container volume-permissions image registry
   ## @param volumePermissions.image.repository Init container volume-permissions image repository
   ## @param volumePermissions.image.tag Init container volume-permissions image tag
