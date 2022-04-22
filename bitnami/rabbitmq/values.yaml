@@ -284,7 +284,7 @@ configuration: |-
   ## Username and password
   ##
   default_user = {{ .Values.auth.username }}
-  default_pass = {{ template "rabbitmq.secretPasswordName" . }}
+  default_pass = CHANGEME
   {{- if .Values.clustering.enabled }}
   ## Clustering
   ##
@@ -341,7 +341,6 @@ extraConfiguration: |-
   #default_vhost = {{ .Release.Namespace }}-vhost
   #disk_free_limit.absolute = 50MB
   disk_free_limit.absolute = 1GB
-  management.load_definitions = /app/load_definition.json
 
 ## @param advancedConfiguration Configuration file content: advanced configuration
 ## Use this as additional configuration in classic config format (Erlang term configuration format)
@@ -496,10 +495,10 @@ podLabels: |
 ##
 podAnnotations: |
   sidecar.istio.io/inject: "false"
-  {{ if .Values.datadog.enabled -}}
-  tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
-  tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
-  {{ with .Values.datadog.labels }}{{ toYaml . }}{{- end -}}
+  {{- if .Values.datadog.enabled -}}
+  {{- range $k, $v := .Values.datadog.annotations }}
+  {{ $k }}: {{ tpl $v $ | quote }}
+  {{- end -}}
   {{- end -}}
 
 ## @param updateStrategyType Update strategy type for RabbitMQ statefulset
@@ -517,6 +516,12 @@ statefulsetLabels: |
   {{ with .Values.datadog.labels }}{{ toYaml . }}{{- end -}}
   {{- end -}}
 
+## Statefulset annotations. Evaluated as a template
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+statefulsetAnnotations:
+  version-tracker.blbl.cr: "true"
+
 ## @param priorityClassName Name of the priority class to be used by RabbitMQ pods, priority class needs to be created beforehand
 ## Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
 ##
@@ -530,7 +535,7 @@ podAffinityPreset: ""
 ## @param podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
 ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
 ##
-podAntiAffinityPreset: ""
+podAntiAffinityPreset: soft
 
 ## Node affinity preset
 ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
@@ -567,7 +572,7 @@ affinity: |
         podAffinityTerm:
           labelSelector:
             matchLabels: {{- include "common.labels.matchLabels" . | nindent 14 }}
-          topologyKey: failure-domain.beta.kubernetes.io/zone
+          topologyKey: topology.kubernetes.io/zone
 
 ## @param nodeSelector Node labels for pod assignment. Evaluated as a template
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -624,6 +629,7 @@ resources:
   ## Examples:
   ## requests:
   ##    cpu: 1000m
+  # We need a default limit here, so that the Chart can work with highwatermark enabled (which is using limits.memory) by default, mainly for CI tests
     memory: 1Gi
   ##
   requests: {}
