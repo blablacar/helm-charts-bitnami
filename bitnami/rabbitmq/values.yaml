@@ -18,7 +18,7 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  storageClass: ""
+  storageClass: pd-balanced-retain
   ## Compatibility adaptations for Kubernetes platforms
   ##
   compatibility:
