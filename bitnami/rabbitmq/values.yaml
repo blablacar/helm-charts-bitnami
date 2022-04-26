@@ -15,7 +15,7 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  storageClass: ""
+  storageClass: pd-balanced-retain
 
 ## @section RabbitMQ Image parameters
 ## Bitnami RabbitMQ image version
