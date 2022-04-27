@@ -369,6 +369,36 @@ advancedConfiguration: |-
       ]}]
   }].
 
+datadog:
+  enabled: true
+  #max_detailed_queues: 200
+  annotations:
+    ad.datadoghq.com/rabbitmq.check_names: '["rabbitmq"]'
+    ad.datadoghq.com/rabbitmq.init_configs: '[{}]'
+    ad.datadoghq.com/rabbitmq.instances: >-
+      [{
+       {{- if .Values.datadog.max_detailed_queues }}
+        "max_detailed_queues": {{ .Values.datadog.max_detailed_queues | quote }},
+        {{- end }}
+        "rabbitmq_api_url":"http://%%host%%:15672/api/",
+        "username":"datadog",
+        "password":"%%env_RABBITMQ_DATADOG_PASSWORD%%"
+      }]
+    ad.datadoghq.com/rabbitmq.logs: >-
+      [{
+        "source": "rabbitmq",
+        "service": "{{ .Release.Name }}",
+        "log_processing_rules": [
+          {
+            "type": "multi_line",
+            "name": "logs_starts_with_equal_sign",
+            "pattern" : "="
+          }
+        ]
+      }]
+  labels:
+    team: "team_dbre" # name of the team ex:team_dbre, used for cost control
+
 ## LDAP configuration
 ##
 ldap:
@@ -450,15 +480,25 @@ podManagementPolicy: OrderedReady
 ## @param podLabels RabbitMQ Pod labels. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-podLabels:
+podLabels: |
   app: "{{ .Release.Name }}"
   component: "database"
+  {{ if .Values.datadog.enabled -}}
+  tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
+  tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
+  {{ with .Values.datadog.labels }}{{ toYaml . }}{{- end -}}
+  {{- end -}}
 
 ## @param podAnnotations RabbitMQ Pod annotations. Evaluated as a template
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
-podAnnotations:
+podAnnotations: |
   sidecar.istio.io/inject: "false"
+  {{- if .Values.datadog.enabled -}}
+  {{- range $k, $v := .Values.datadog.annotations }}
+  {{ $k }}: {{ tpl $v $ | quote }}
+  {{- end -}}
+  {{- end -}}
 
 ## @param updateStrategyType Update strategy type for RabbitMQ statefulset
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
@@ -468,7 +508,18 @@ updateStrategyType: RollingUpdate
 ## @param statefulsetLabels RabbitMQ statefulset labels. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-statefulsetLabels: {}
+statefulsetLabels: |
+  {{- if .Values.datadog.enabled -}}
+  tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
+  tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
+  {{ with .Values.datadog.labels }}{{ toYaml . }}{{- end -}}
+  {{- end -}}
+
+## Statefulset annotations. Evaluated as a template
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+statefulsetAnnotations:
+  version-tracker.blbl.cr: "true"
 
 ## @param priorityClassName Name of the priority class to be used by RabbitMQ pods, priority class needs to be created beforehand
 ## Ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
