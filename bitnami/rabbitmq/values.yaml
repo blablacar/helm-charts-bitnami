@@ -1259,8 +1259,8 @@ volumePermissions:
   ## @param volumePermissions.image.pullSecrets Specify docker-registry secret names as an array
   ##
   image:
-    registry: docker.io
-    repository: bitnami/bitnami-shell
+    registry: eu.gcr.io
+    repository: bbc-registry/bitnami/bitnami-shell
     tag: 10-debian-10-r431
     ## Specify a imagePullPolicy
     ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
