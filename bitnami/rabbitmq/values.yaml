@@ -41,9 +41,9 @@ global:
 ## @param image.debug Set to true if you would like to see extra information on logs
 ##
 image:
-  registry: docker.io
-  repository: bitnami/rabbitmq
-  tag: 3.13.7-debian-12-r2
+  registry: eu.gcr.io
+  repository: bbc-registry/rabbitmq
+  tag: 3.13.7
   digest: ""
   ## set to true if you would like to see extra information on logs
   ## It turns BASH and/or NAMI debugging in the image
@@ -1653,9 +1653,9 @@ volumePermissions:
   ## @param volumePermissions.image.pullSecrets Specify docker-registry secret names as an array
   ##
   image:
-    registry: docker.io
-    repository: bitnami/os-shell
-    tag: 12-debian-12-r28
+    registry: eu.gcr.io
+    repository: bbc-registry/os-shell
+    tag: 12-debian-12-r50
     digest: ""
     ## Specify a imagePullPolicy
     ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
