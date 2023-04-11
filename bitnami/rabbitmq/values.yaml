@@ -29,8 +29,8 @@ global:
 ## @param image.debug Set to true if you would like to see extra information on logs
 ##
 image:
-  registry: docker.io
-  repository: bitnami/rabbitmq
+  registry: eu.gcr.io
+  repository: bbc-registry/rabbitmq
   tag: 3.10.8-debian-11-r4
   digest: ""
   ## set to true if you would like to see extra information on logs
@@ -1343,8 +1343,8 @@ volumePermissions:
   ## @param volumePermissions.image.pullSecrets Specify docker-registry secret names as an array
   ##
   image:
-    registry: docker.io
-    repository: bitnami/bitnami-shell
+    registry: eu.gcr.io
+    repository: bbc-registry/bitnami-shell
     tag: 11-debian-11-r38
     digest: ""
     ## Specify a imagePullPolicy
