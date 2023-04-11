@@ -234,7 +234,7 @@ onlineSchedulers: ""
 memoryHighWatermark:
   ## @param memoryHighWatermark.enabled Enable configuring Memory high watermark on RabbitMQ
   ##
-  enabled: false
+  enabled: true
   ## @param memoryHighWatermark.type Memory high watermark type. Either `absolute` or `relative`
   ##
   type: "relative"
@@ -244,7 +244,8 @@ memoryHighWatermark:
   ## Note: the memory relative limit is applied to the resource.limits.memory to calculate the memory threshold
   ## You can also use an absolute value, e.g.: 256Mi
   ##
-  value: 0.4
+  value: 0.5
+
 ## @param plugins List of default plugins to enable (should only be altered to remove defaults; for additional plugins use `extraPlugins`)
 ##
 plugins: "rabbitmq_management rabbitmq_peer_discovery_k8s"
@@ -255,7 +256,7 @@ communityPlugins: ""
 ## @param extraPlugins Extra plugins to enable (single string containing a space-separated list)
 ## Use this instead of `plugins` to add new plugins
 ##
-extraPlugins: "rabbitmq_auth_backend_ldap"
+extraPlugins: ""
 ## Clustering settings
 ##
 clustering:
@@ -515,6 +516,7 @@ configurationExistingSecret: ""
 extraConfiguration: |-
   #default_vhost = {{ .Release.Namespace }}-vhost
   #disk_free_limit.absolute = 50MB
+  disk_free_limit.absolute = 1GB
 ## @param extraConfigurationExistingSecret Existing secret with the extra configuration to append to `configuration`.
 ## Must contain the key "extraConfiguration"
 ## Takes precedence over `extraConfiguration`, so do not use both simultaneously
@@ -533,7 +535,15 @@ extraConfigurationExistingSecret: ""
 ## If both, advancedConfiguration and advancedConfigurationExistingSecret are set, then advancedConfiguration
 ## will be used instead of the secret.
 #
-advancedConfiguration: ""
+advancedConfiguration: |-
+  [{rabbit, [
+    {log, [
+      {console, [{level, info}]},
+      {categories, [
+          {connection, [{level, warning}]}
+          ]}
+      ]}]
+  }].
 ## @param advancedConfigurationExistingSecret Existing secret with the advanced configuration file (must contain a key `advanced.config`).
 ## Use this as additional configuration in classic config format (Erlang term configuration format) as in advancedConfiguration
 ## Do not use in combination with advancedConfiguration, will be ignored
@@ -545,6 +555,7 @@ advancedConfigurationExistingSecret: ""
 ## @param featureFlags that controls what features are considered to be enabled or available on all cluster nodes.
 ##
 featureFlags: ""
+
 ## LDAP configuration
 ##
 ldap:
@@ -639,7 +650,8 @@ extraSecretsPrependReleaseName: false
 
 ## @param replicaCount Number of RabbitMQ replicas to deploy
 ##
-replicaCount: 1
+replicaCount: 3
+
 ## @param schedulerName Use an alternate scheduler, e.g. "stork".
 ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
 ##
@@ -659,7 +671,10 @@ podManagementPolicy: OrderedReady
 ## @param podLabels RabbitMQ Pod labels. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-podLabels: {}
+podLabels:
+  app: "{{ .Release.Name }}"
+  component: "database"
+  sidecar.istio.io/inject: "false"
 ## @param podAnnotations RabbitMQ Pod annotations. Evaluated as a template
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
@@ -715,7 +730,19 @@ nodeAffinityPreset:
 ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ## Note: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
 ##
-affinity: {}
+affinity: |
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels: {{- include "common.labels.matchLabels" . | nindent 12 }}
+        topologyKey: kubernetes.io/hostname
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels: {{- include "common.labels.matchLabels" . | nindent 14 }}
+          topologyKey: topology.kubernetes.io/zone
+
 ## @param nodeSelector Node labels for pod assignment. Evaluated as a template
 ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
 ##
@@ -790,7 +817,22 @@ resourcesPreset: "micro"
 ##     cpu: 3
 ##     memory: 1024Mi
 ##
-resources: {}
+resources:
+  ## Example:
+  ## limits:
+  ##    cpu: 1000m
+  ##    memory: 2Gi
+  ##
+  limits:
+  ## Examples:
+  ## requests:
+  ##    cpu: 1000m
+  ##    memory: 2Gi
+  ##
+# We need a default limit here, so that the Chart can work with highwatermark enabled (which is using limits.memory) by default, mainly for CI tests
+    memory: 1Gi
+  requests: {}
+
 ## Configure RabbitMQ containers' extra options for liveness probe
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
 ## @param livenessProbe.enabled Enable livenessProbe
@@ -877,13 +919,14 @@ sidecars: []
 pdb:
   ## @param pdb.create Enable/disable a Pod Disruption Budget creation
   ##
-  create: false
+  create: true
   ## @param pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
   ##
-  minAvailable: 1
+  #minAvailable: 1
   ## @param pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
   ##
-  maxUnavailable: ""
+  maxUnavailable: 1
+
 ## @section RBAC parameters
 ##
 
@@ -1084,7 +1127,10 @@ service:
   clusterIP: ""
   ## @param service.labels Service labels. Evaluated as a template
   ##
-  labels: {}
+  labels:
+    app: "{{ .Release.Name }}"
+    component: "database"
+
   ## @param service.annotations Service annotations. Evaluated as a template
   ## Example:
   ## annotations:
@@ -1434,7 +1480,7 @@ metrics:
 volumePermissions:
   ## @param volumePermissions.enabled Enable init container that changes the owner and group of the persistent volume(s) mountpoint to `runAsUser:fsGroup`
   ##
-  enabled: false
+  enabled: true
   ## @param volumePermissions.image.registry [default: REGISTRY_NAME] Init container volume-permissions image registry
   ## @param volumePermissions.image.repository [default: REPOSITORY_NAME/os-shell] Init container volume-permissions image repository
   ## @skip volumePermissions.image.tag Init container volume-permissions image tag
