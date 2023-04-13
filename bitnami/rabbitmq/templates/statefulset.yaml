@@ -279,7 +279,8 @@ spec:
               command:
                 - /bin/bash
                 - -ec
-                - rabbitmq-diagnostics -q ping
+                # about RABBITMQ_CTL_ERL_ARGS: https://github.com/bitnami/charts/issues/11116
+                - RABBITMQ_CTL_ERL_ARGS="+S 1:1" rabbitmq-diagnostics -q ping
           {{- end }}
           {{- if .Values.customReadinessProbe }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
@@ -289,7 +290,8 @@ spec:
               command:
                 - /bin/bash
                 - -ec
-                - rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms
+                # about RABBITMQ_CTL_ERL_ARGS: https://github.com/bitnami/charts/issues/11116
+                - RABBITMQ_CTL_ERL_ARGS="+S 1:1" rabbitmq-diagnostics -q check_running && RABBITMQ_CTL_ERL_ARGS="+S 1:1" rabbitmq-diagnostics -q check_local_alarms
           {{- end }}
           {{- if .Values.customStartupProbe }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
