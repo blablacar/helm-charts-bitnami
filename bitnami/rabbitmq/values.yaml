@@ -268,7 +268,12 @@ terminationGracePeriodSeconds: 120
 ##   - name: FOO
 ##     value: BAR
 ##
-extraEnvVars: []
+extraEnvVars:
+  # BBC-patch to reduce cpu usage of *probes* (that are using rabbitmq-diagnostics tool), cf: https://github.com/bitnami/charts/issues/11116
+  # NB: this issue is (at least partially) different than the one with timeout (defined in statefulset.yaml), this one starts immediately after pod's startup
+  #     and it's not about stucked process, but just the cpu usage of the processes
+  - name: "RABBITMQ_CTL_ERL_ARGS"
+    value: "+S 1:1"
 ## @param extraEnvVarsCM Name of existing ConfigMap containing extra environment variables
 ##
 extraEnvVarsCM: ""
