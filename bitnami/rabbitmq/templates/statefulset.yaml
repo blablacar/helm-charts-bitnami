@@ -289,7 +289,12 @@ spec:
               command:
                 - /bin/bash
                 - -ec
-                - rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms
+                # About timeout:
+                #   It's a workaround for some random executions of rabbitmq-diagnostics that don't stop and stay up "indefinitely", using ~1cpu forever each
+                #   cf: https://github.com/bitnami/charts/issues/11116
+                #   NB: the `--timeout` of rabbitmq-diagnostics doesn't solve this issue
+                #   Warning: this issue only starts a few hours/days after pod's creation, and is "random" (no known way to reproduce)
+                - /usr/bin/timeout {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_running && /usr/bin/timeout {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_local_alarms
           {{- end }}
           {{- if .Values.customStartupProbe }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
