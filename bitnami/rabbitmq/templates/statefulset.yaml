@@ -294,7 +294,7 @@ spec:
                 #   cf: https://github.com/bitnami/charts/issues/11116
                 #   NB: the `--timeout` of rabbitmq-diagnostics doesn't solve this issue
                 #   Warning: this issue only starts a few hours/days after pod's creation, and is "random" (no known way to reproduce)
-                - /usr/bin/timeout {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_running && /usr/bin/timeout {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_local_alarms
+                - /usr/bin/timeout --kill-after=10 {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_running && /usr/bin/timeout --kill-after=10 {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_local_alarms
           {{- end }}
           {{- if .Values.customStartupProbe }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
