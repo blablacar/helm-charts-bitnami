@@ -293,6 +293,7 @@ spec:
                 #   It's a workaround for some random executions of rabbitmq-diagnostics that don't stop and stay up "indefinitely", using ~1cpu forever each
                 #   cf: https://github.com/bitnami/charts/issues/11116
                 #   NB: the `--timeout` of rabbitmq-diagnostics doesn't solve this issue
+                #   NB: we need --kill-after, because the normal TERM signal send by timeout is not enough, the process is "stucked" and requires a SIGKILL
                 #   Warning: this issue only starts a few hours/days after pod's creation, and is "random" (no known way to reproduce)
                 - /usr/bin/timeout --kill-after=10 {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_running && /usr/bin/timeout --kill-after=10 {{ .Values.readinessProbe.timeoutSeconds }} rabbitmq-diagnostics -q check_local_alarms
           {{- end }}
