@@ -422,6 +422,8 @@ extraConfiguration: |-
   #default_vhost = {{ .Release.Namespace }}-vhost
   #disk_free_limit.absolute = 50MB
   disk_free_limit.absolute = 1GB
+  classic_queue.default_version = 2
+
 ## @param advancedConfiguration Configuration file content: advanced configuration
 ## Use this as additional configuration in classic config format (Erlang term configuration format)
 ##
