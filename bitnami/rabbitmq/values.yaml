@@ -1596,11 +1596,15 @@ volumePermissions:
     runAsUser: 0
 
 ## Istio configuration for OAuth2 Proxy
-privatelyExposed:
-  enabled: true # expose the manager UI only to the internal network using oauth2-proxy
-  #VirtualService host (to override if not exposed on https://rabbitmq-<cluster_name>.<kube_cluster_name>.blbl.cr )
-  host: "{{ include \"manager_hostname\" .}}" # This can include directly the value of the host or a helm function because the value is interpreted by tpl function in kibana-vs.yaml 
-  #allowedGroups should include DBRE and the service team in the HR 
-  allowedGroups:
-    - ROL_DPT_Engineering_DBRE
-    #- ROL_DPT_Engineering_<service_team>
+manager:
+  privatelyExposed:
+    enabled: true # expose the manager UI only to the internal network using oauth2-proxy
+    #VirtualService host (to override if not exposed on https://rabbitmq-<cluster_name>.<kube_cluster_name>.blbl.cr )
+    host: "{{ include \"manager_hostname\" .}}" # This can include directly the value of the host or a helm function because the value is interpreted by tpl function in kibana-vs.yaml 
+    #allowedGroups should include DBRE and the service team in the HR 
+    allowedGroups:
+      - ROL_DPT_Engineering_DBRE
+      #- ROL_DPT_Engineering_<service_team>
+
+# FIXME to remove once EP
+kubeClusterName: preprod
