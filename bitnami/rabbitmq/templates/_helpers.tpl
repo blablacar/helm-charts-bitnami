@@ -320,9 +320,9 @@ Get the TLS.sslOptions.Password secret.
 
 
 {{/*
-    Verify that the *kubeClusterName* value is defined
+    Verify that the *kubernetesClusterName* value is defined
  */}}
 {{- define "manager_hostname" -}}
-{{- $kubeClusterName := required "A valid kube cluster name in .Values.kubeClusterName is required!" .Values.kubeClusterName -}}
-{{ .Release.Name }}.{{ $kubeClusterName }}.blbl.cr
+{{- $kubernetesClusterName := required "A valid kube cluster name in .Values.kubernetesClusterName is required!" .Values.kubernetesClusterName -}}
+{{ .Release.Name }}.{{ $kubernetesClusterName }}.blbl.cr
 {{- end }}

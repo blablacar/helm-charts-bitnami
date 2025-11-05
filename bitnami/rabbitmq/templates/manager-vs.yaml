@@ -16,6 +16,6 @@ spec:
         - destination:
             host: {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
             port:
-              number: 15672 #TODO: use .Values.service.ports.manager (or .Values.containerPorts.manager)
+              number: {{ .Values.service.ports.manager }}
       timeout: 60s
 {{- end }}

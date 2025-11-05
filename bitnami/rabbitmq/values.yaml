@@ -1605,6 +1605,3 @@ manager:
     allowedGroups:
       - ROL_DPT_Engineering_DBRE
       #- ROL_DPT_Engineering_<service_team>
-
-# FIXME to remove once EP
-kubeClusterName: preprod-1
