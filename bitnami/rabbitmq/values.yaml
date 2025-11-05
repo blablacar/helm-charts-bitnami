@@ -1605,3 +1605,7 @@ manager:
     allowedGroups:
       - ROL_DPT_Engineering_DBRE
       #- ROL_DPT_Engineering_<service_team>
+
+## kubernetesClusterName is an alternative name for kubeClusterName
+## This is a workaroud to avoid CI issue on step ’Render base chart HelmRelease / Render’ which is impossible on helm-charts-bitnami repository
+# kubernetesClusterName: prod-1
