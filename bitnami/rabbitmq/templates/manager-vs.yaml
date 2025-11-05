@@ -1,0 +1,21 @@
+{{- if .Values.kibana.privatelyExposed.enabled -}}
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: {{ .Release.Name }}-manager
+  namespace: {{ .Release.Namespace }}
+  labels:
+    istio.io/tag: stable
+spec:
+  gateways:
+    - istio-system/istio-ingressgateway-restricted
+  hosts:
+    - {{ tpl .Values.manager.privatelyExposed.host $}}
+  http:
+    - route:
+        - destination:
+            host: {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: 5601
+      timeout: 60s
+{{- end }}

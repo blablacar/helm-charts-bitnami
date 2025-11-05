@@ -317,3 +317,12 @@ Get the TLS.sslOptions.Password secret.
     {{- include "getValueFromSecret" (dict "Namespace" .Release.Namespace "Name" .Values.auth.tls.sslOptionsPassword.existingSecret "Length" 10 "Key" .Values.auth.tls.sslOptionsPassword.key)  -}}
 {{- end -}}
 {{- end -}}
+
+
+{{/*
+    Verify that the *kubeClusterName* value is defined
+ */}}
+{{- define "manager_hostname" -}}
+{{- $kubeClusterName := required "A valid kube cluster name in .Values.kubeClusterName is required!" .Values.kubeClusterName -}}
+{{ .Release.Name }}.{{ $kubeClusterName }}.blbl.cr
+{{- end }}
