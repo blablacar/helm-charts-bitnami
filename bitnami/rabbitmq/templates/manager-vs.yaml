@@ -1,4 +1,4 @@
-{{- if .Values.kibana.privatelyExposed.enabled -}}
+{{- if .Values.manager.privatelyExposed.enabled -}}
 apiVersion: networking.istio.io/v1
 kind: VirtualService
 metadata:
@@ -16,6 +16,6 @@ spec:
         - destination:
             host: {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
             port:
-              number: 5601
+              number: 15672
       timeout: 60s
 {{- end }}

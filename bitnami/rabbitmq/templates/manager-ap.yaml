@@ -1,4 +1,4 @@
-{{- if .Values.kibana.privatelyExposed.enabled -}}
+{{- if .Values.manager.privatelyExposed.enabled -}}
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
