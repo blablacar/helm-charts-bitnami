@@ -1,0 +1,54 @@
+{{- if .Values.manager.privatelyExposed.enabled -}}
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    istio.io/tag: stable
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: rabbitmq
+  action: ALLOW
+  rules:
+    - from: # Allow from restricted ingressgateway for specific groups
+      - source:
+          principals:
+            - cluster.local/ns/istio-system/sa/istio-ingressgateway-restricted*
+      when:
+        - key: request.auth.claims[groups]
+          values: {{- toYaml .Values.manager.privatelyExposed.allowedGroups | trim | nindent 12 }}
+    - from: # Allow from every namespace
+      - source:
+          notNamespaces:
+            - istio-system
+    - to: # Allow metric scraping
+      - operation:
+          methods:
+            - GET
+          paths:
+            - /stats/prometheus
+          ports:
+            - "15090"
+---
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    istio.io/tag: stable
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: rabbitmq
+  jwtRules:
+    - issuer: https://blablacar.onelogin.com/oidc/2
+      jwksUri: https://blablacar.onelogin.com/oidc/2/certs
+      forwardOriginalToken: true
+      fromHeaders:
+        - name: x-bbc-auth
+{{- end }}
