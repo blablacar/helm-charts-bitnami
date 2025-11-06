@@ -2,7 +2,7 @@
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
-  name: {{ .Release.Name }}-manager
+  name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
     istio.io/tag: stable
@@ -36,7 +36,7 @@ spec:
 apiVersion: security.istio.io/v1
 kind: RequestAuthentication
 metadata:
-  name: {{ .Release.Name }}-manager
+  name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
     istio.io/tag: stable

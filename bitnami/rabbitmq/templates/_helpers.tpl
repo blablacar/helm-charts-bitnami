@@ -320,7 +320,7 @@ Get the TLS.sslOptions.Password secret.
 
 
 {{/*
-    Verify that the *kubernetesClusterName* value is defined
+    Verify that the *kubernetesClusterName* value is defined and building the default manager UI hostname (used in the VirtualService)
  */}}
 {{- define "manager_hostname" -}}
 {{- $kubernetesClusterName := required "A valid kube cluster name in .Values.kubernetesClusterName is required!" .Values.kubernetesClusterName -}}
