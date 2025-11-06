@@ -710,7 +710,6 @@ podManagementPolicy: OrderedReady
 podLabels: |
   app: "{{ .Release.Name }}"
   component: "database"
-  sidecar.istio.io/inject: "false"
   {{ if .Values.datadog.enabled -}}
   tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
   tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
@@ -1595,3 +1594,18 @@ volumePermissions:
   containerSecurityContext:
     seLinuxOptions: null
     runAsUser: 0
+
+## Istio configuration for OAuth2 Proxy
+manager:
+  privatelyExposed:
+    enabled: true # expose the manager UI only to the internal network using oauth2-proxy
+    #VirtualService host (to override if not exposed on https://rabbitmq-<cluster_name>.<kube_cluster_name>.blbl.cr )
+    host: "{{ include \"manager_hostname\" .}}" # This can include directly the value of the host or a helm function because the value is interpreted by tpl function in manager-vs.yaml 
+    #allowedGroups should include DBRE and the service team in the HR 
+    allowedGroups:
+      - ROL_DPT_Engineering_DBRE
+      #- ROL_DPT_Engineering_<service_team>
+
+## kubernetesClusterName is an alternative name for kubeClusterName
+## This is a workaroud to avoid CI issue on step ’Render base chart HelmRelease / Render’ which is impossible on helm-charts-bitnami repository
+# kubernetesClusterName: prod-1
