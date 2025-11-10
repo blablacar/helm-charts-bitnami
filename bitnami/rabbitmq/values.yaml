@@ -720,6 +720,10 @@ podLabels: |
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
 podAnnotations: |
+  sidecar.istio.io/proxyCPU: "{{ .Values.istio.proxyResources.requests.cpu }}"
+  sidecar.istio.io/proxyCPULimit: "{{ .Values.istio.proxyResources.limits.cpu }}"
+  sidecar.istio.io/proxyMemory: "{{ .Values.istio.proxyResources.requests.memory }}"
+  sidecar.istio.io/proxyMemoryLimit: "{{ .Values.istio.proxyResources.limits.memory }}"
   {{- if .Values.datadog.enabled -}}
   {{- range $k, $v := .Values.datadog.annotations }}
   {{ $k }}: {{ tpl $v $ | quote }}
@@ -1594,6 +1598,15 @@ volumePermissions:
   containerSecurityContext:
     seLinuxOptions: null
     runAsUser: 0
+
+istio:
+  proxyResources:
+    limits:
+      cpu: 1
+      memory: 160Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
 ## Istio configuration for OAuth2 Proxy
 manager:
