@@ -1600,6 +1600,7 @@ volumePermissions:
     runAsUser: 0
 
 istio:
+  blockUndefinedDependencies: true   # this is the "outboundTrafficPolicy" attribute of istio's Sidecar
   proxyResources:
     limits:
       cpu: 1
