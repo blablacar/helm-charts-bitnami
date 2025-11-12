@@ -1604,10 +1604,10 @@ istio:
   proxyResources:
     limits:
       cpu: 1
-      memory: 160Mi
+      memory: 100Mi
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 80Mi
 
 ## Istio configuration for OAuth2 Proxy
 manager:
