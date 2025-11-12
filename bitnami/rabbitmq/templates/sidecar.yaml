@@ -1,0 +1,25 @@
+---
+apiVersion: networking.istio.io/v1
+kind: Sidecar
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+    istio.io/tag: "stable"
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  egress:
+  - hosts:
+    - istio-system/metadata.google.internal
+    - istio-system/metadata.google.internal.
+    - default/kubernetes.default.svc.cluster.local  # for discovery of other rabbitmq nodes
+    - {{ .Release.Namespace }}/{{ .Release.Name }}-headless.{{ .Release.Namespace }}.svc.cluster.local   # for rabbitmq-internal communication (clustering)
+  outboundTrafficPolicy:
+    {{- if .Values.istio.blockUndefinedDependencies }}
+    mode: "REGISTRY_ONLY"
+    {{- else }}
+    mode: "ALLOW_ANY"
+    {{- end }}
+  workloadSelector:
+    {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.podLabels .Values.commonLabels ) "context" . ) }}
+    labels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
