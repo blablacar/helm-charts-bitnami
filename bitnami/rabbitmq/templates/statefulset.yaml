@@ -498,8 +498,9 @@ spec:
       kind: PersistentVolumeClaim
       metadata:
         name: data
-        {{- $claimLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.persistence.labels .Values.commonLabels ) "context" . ) }}
-        labels: {{- include "common.labels.matchLabels" ( dict "customLabels" $claimLabels "context" $ ) | nindent 10 }}
+        {{- $extraLabels := dict "app.kubernetes.io/name" (include "common.names.name" .) "app.kubernetes.io/instance" .Release.Name -}}
+        {{- $claimLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.persistence.labels .Values.commonLabels $extraLabels ) "context" . ) }}
+        labels: {{- include "common.tplvalues.render" ( dict "value" $claimLabels "context" $ ) | nindent 10 }}
         {{- if .Values.persistence.annotations }}
         annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.persistence.annotations "context" $) | nindent 10 }}
         {{- end }}
