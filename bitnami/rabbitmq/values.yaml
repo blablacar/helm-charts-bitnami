@@ -90,7 +90,14 @@ commonAnnotations: {}
 servicenameOverride: ""
 ## @param commonLabels Labels to add to all deployed objects
 ##
-commonLabels: {}
+commonLabels: |
+  app: "{{ .Release.Name }}"
+  component: "database"
+  {{ if .Values.datadog.enabled -}}
+  tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
+  tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
+  {{ with .Values.datadog.labels }}{{ toYaml . }}{{- end -}}
+  {{- end -}}
 ## @param serviceBindings.enabled Create secret for service binding (Experimental)
 ## Ref: https://servicebinding.io/service-provider/
 ##
@@ -707,14 +714,7 @@ podManagementPolicy: OrderedReady
 ## @param podLabels RabbitMQ Pod labels. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-podLabels: |
-  app: "{{ .Release.Name }}"
-  component: "database"
-  {{ if .Values.datadog.enabled -}}
-  tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
-  tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
-  {{ with .Values.datadog.labels }}{{ toYaml . }}{{- end -}}
-  {{- end -}}
+podLabels: {}
 
 ## @param podAnnotations RabbitMQ Pod annotations. Evaluated as a template
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
@@ -741,12 +741,7 @@ updateStrategy:
 ## @param statefulsetLabels RabbitMQ statefulset labels. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-statefulsetLabels: |
-  {{- if .Values.datadog.enabled -}}
-  tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
-  tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
-  {{ with .Values.datadog.labels }}{{ toYaml . }}{{- end -}}
-  {{- end -}}
+statefulsetLabels: {}
 ## @param statefulsetAnnotations RabbitMQ statefulset annotations. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
