@@ -91,8 +91,6 @@ servicenameOverride: ""
 ## @param commonLabels Labels to add to all deployed objects
 ##
 commonLabels: |
-  app: "{{ .Release.Name }}"
-  component: "database"
   {{ if .Values.datadog.enabled -}}
   tags.datadoghq.com/service: {{ .Release.Name | lower | quote }}
   tags.datadoghq.com/version: {{ .Values.image.tag | quote }}
@@ -714,7 +712,9 @@ podManagementPolicy: OrderedReady
 ## @param podLabels RabbitMQ Pod labels. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-podLabels: {}
+podLabels: |
+  app: "{{ .Release.Name }}"
+  component: "database"
 
 ## @param podAnnotations RabbitMQ Pod annotations. Evaluated as a template
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
