@@ -567,7 +567,7 @@ datadog:
   #max_detailed_queues: 200
   annotations:
     ad.datadoghq.com/rabbitmq.check_names: '["rabbitmq"]'
-    ad.datadoghq.com/rabbitmq.init_configs: "[{}]"
+    ad.datadoghq.com/rabbitmq.init_configs: '[{}]'
     ad.datadoghq.com/rabbitmq.instances: >-
       [{
        {{- if .Values.datadog.max_detailed_queues }}
