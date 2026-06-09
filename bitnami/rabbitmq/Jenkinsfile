@@ -1,0 +1,4 @@
+node("lite") {
+  checkout scm
+  load("charts.groovy").call()
+}
