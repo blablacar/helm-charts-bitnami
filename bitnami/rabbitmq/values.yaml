@@ -801,18 +801,19 @@ affinity: |
 ## @param nodeSelector Node labels for pod assignment. Evaluated as a template
 ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
 ##
-nodeSelector:
-  dedicated: "datastores"
+nodeSelector: |
+  {{- if eq $.Values.scheduling.nodepool "datastores" }}
+  cloud.google.com/compute-class: "datastores"
+  {{- else if eq $.Values.scheduling.nodepool "common" }}
+  # No nodeSelector for common nodepool
+  {{- else }}
+  {{- fail "Invalid value nodepool" }}
+  {{- end }}
 
 ## @param tolerations Tolerations for pod assignment. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 ##
-tolerations:
-- key: dedicated
-  operator: Equal
-  value: "datastores"
-  effect: NoSchedule
-
+tolerations: []
 ## @param topologySpreadConstraints Topology Spread Constraints for pod assignment spread across your cluster among failure-domains. Evaluated as a template
 ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
 ##
@@ -1627,3 +1628,6 @@ manager:
 ## kubernetesClusterName is an alternative name for kubeClusterName
 ## This is a workaroud to avoid CI issue on step ’Render base chart HelmRelease / Render’ which is impossible on helm-charts-bitnami repository
 # kubernetesClusterName: prod-1
+
+scheduling:
+  nodepool: datastores   # enum: datastores, common
