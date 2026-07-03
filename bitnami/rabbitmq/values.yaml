@@ -724,6 +724,7 @@ podAnnotations: |
   sidecar.istio.io/proxyMemory: "{{ .Values.istio.proxyResources.requests.memory }}"
   sidecar.istio.io/proxyMemoryLimit: "{{ .Values.istio.proxyResources.limits.memory }}"
   # Traffic between RabbitMQ nodes should *not* be handled by istio to avoid network-partition incidents, cf: DBRE-4975
+  # NB: istio is mainly useful for web-console (via oauth-proxy) which is port 15672
   traffic.sidecar.istio.io/excludeOutboundPorts: "25672"
   traffic.sidecar.istio.io/excludeInboundPorts: "25672"
   {{- if .Values.datadog.enabled -}}
