@@ -1618,6 +1618,7 @@ istio:
     requests:
       cpu: 100m
       memory: 80Mi
+  metricsPortEnabled: true
 
 ## Istio configuration for OAuth2 Proxy
 manager:
@@ -1636,8 +1637,3 @@ manager:
 
 scheduling:
   nodepool: datastores   # enum: datastores, common
-
-
-## Istio Metrics
-istioMetrics:
-  enabled: true
