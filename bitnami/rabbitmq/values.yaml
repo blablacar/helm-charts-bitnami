@@ -344,6 +344,7 @@ containerPorts:
   manager: 15672
   epmd: 4369
   metrics: 9419
+  istioMetrics: 15020
 ## @param initScripts Dictionary of init scripts. Evaluated as a template.
 ## Specify dictionary of scripts to be run at first boot
 ## Alternatively, you can put your scripts under the files/docker-entrypoint-initdb.d directory
@@ -1617,6 +1618,7 @@ istio:
     requests:
       cpu: 100m
       memory: 80Mi
+  metricsPortEnabled: true
 
 ## Istio configuration for OAuth2 Proxy
 manager:

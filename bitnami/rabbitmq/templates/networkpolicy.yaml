@@ -62,6 +62,9 @@ spec:
         {{- if .Values.metrics.enabled }}
         - port: {{ .Values.containerPorts.metrics }}
         {{- end }}
+        {{- if .Values.istio.metricsPortEnabled }}
+        - port: {{ .Values.containerPorts.istioMetrics }}
+        {{- end }}
       {{- if not .Values.networkPolicy.allowExternal }}
       from:
         - podSelector:
